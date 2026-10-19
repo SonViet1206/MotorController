@@ -2,7 +2,7 @@
 class PIDController{
   private:
     float kp, ki, kd;
-    float integral = 0;
+    float integral=0;
     float previousError = 0;
     float previousMeasurement=0;
     float filteredDerivative=0;
