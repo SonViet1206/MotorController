@@ -13,7 +13,7 @@ SpeedController::SpeedController(
 {
 }
 
-void SpeedController::setTargetRPM(float rpm)
+void SpeedController::setTargetRPM(float rpm) 
 {
   targetRPM = rpm;
 }
@@ -47,8 +47,9 @@ void SpeedController::update(unsigned long now)
   if (faultManager.hasFault())
   {
     stop();
+    return;
   }
-  motor.setPWM((int)output);
+  motor.setPWM((int16_t)output);
 }
 float SpeedController::getCurrentRPM() const
 {
@@ -88,7 +89,8 @@ bool SpeedController::resetFault()
 
   motor.disable();
   targetRPM = 0;
-
+  encoder.reset();
+  currentRPM = 0;
   pid.reset();
   ramp.reset(0);
   faultManager.reset();
@@ -97,4 +99,9 @@ bool SpeedController::resetFault()
 String SpeedController::getFault() const
 {
   return faultManager.getFaultString();
+}
+
+bool SpeedController::isRunning() const
+{
+  return running;
 }
