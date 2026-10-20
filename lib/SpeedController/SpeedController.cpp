@@ -1,7 +1,15 @@
 #include "Arduino.h"
 #include "SpeedController.h"
 
-SpeedController::SpeedController(Motor &motor, Encoder &encoder, PIDController &pid, unsigned long interval, RampGenerator &ramp) : motor(motor), encoder(encoder), pid(pid), INTERVAL(interval), ramp(ramp)
+SpeedController::SpeedController(
+    Motor &motor,
+    Encoder &encoder,
+    PIDController &pid,
+    RampGenerator &ramp,
+    FaultManager &faultManager,
+    unsigned long interval) : motor(motor),
+                              encoder(encoder), pid(pid), ramp(ramp),
+                              faultManager(faultManager), INTERVAL(interval)
 {
 }
 
@@ -13,7 +21,7 @@ void SpeedController::update(unsigned long now)
 {
   if (!running)
     return;
-    
+
   if (firstUpdate)
   {
     firstUpdate = false;
@@ -34,14 +42,13 @@ void SpeedController::update(unsigned long now)
 
   float smoothTarget = ramp.update(targetRPM, dt);
   float output = pid.calculate(smoothTarget, currentRPM, dt);
-  motor.setPWM((int)output);
 
-  Serial.print("Target:");
-  Serial.print(targetRPM);
-  Serial.print(",Actual:");
-  Serial.print(currentRPM);
-  Serial.print(",PWM:");
-  Serial.println((int)output);
+  faultManager.update(smoothTarget, currentRPM, output, now);
+  if (faultManager.hasFault())
+  {
+    stop();
+  }
+  motor.setPWM((int)output);
 }
 float SpeedController::getCurrentRPM() const
 {
@@ -49,6 +56,8 @@ float SpeedController::getCurrentRPM() const
 }
 void SpeedController::start()
 {
+  if (faultManager.hasFault())
+    return;
   if (running)
     return;
 
@@ -71,4 +80,21 @@ void SpeedController::stop()
   ramp.reset(0);
 
   motor.disable();
+}
+bool SpeedController::resetFault()
+{
+  if (running||faultManager.hasFault()==false)
+    return false;
+
+  motor.disable();
+  targetRPM = 0;
+
+  pid.reset();
+  ramp.reset(0);
+  faultManager.reset();
+  return true;
+}
+String SpeedController::getFault() const
+{
+  return faultManager.getFaultString();
 }

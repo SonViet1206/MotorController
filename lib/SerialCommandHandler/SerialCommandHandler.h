@@ -1,14 +1,15 @@
 #pragma once
 #include <Arduino.h>
-#include "MotorController.h"
+#include "IMotorController.h"
 
 class SerialCommandHandler{
     private:
-        MotorController& controller;
+
         String buffer;
+        IMotorController& controller;
         void processCommand(const String& command);
 
     public:
-        explicit SerialCommandHandler(MotorController& controller);
+        explicit SerialCommandHandler(IMotorController& controller);
         void update();
 };

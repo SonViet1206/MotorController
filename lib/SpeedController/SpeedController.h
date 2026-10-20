@@ -3,12 +3,17 @@
 #include "Encoder.h"
 #include "PIDController.h"
 #include "RampGenerator.h"
-class SpeedController{
+#include"FaultManager.h"
+#include <IMotorController.h>
+
+class SpeedController : public IMotorController{
   private:
     Motor& motor;
     Encoder& encoder;
     PIDController& pid; 
     RampGenerator& ramp;
+    FaultManager& faultManager;
+
     float targetRPM = 0;
     float currentRPM = 0;
     unsigned long previousTime = 0;
@@ -18,11 +23,14 @@ class SpeedController{
     bool running = false;
 
   public:
-    SpeedController(Motor& motor,Encoder& encoder,PIDController& pid,unsigned long interval,RampGenerator& ramp);
-    void setTargetRPM(float rpm);
+    SpeedController(Motor& motor,Encoder& encoder,PIDController& pid,RampGenerator& ramp,FaultManager& faultManager,unsigned long interval);
+    void setTargetRPM(float rpm)override;
     void update(unsigned long now);
     float getCurrentRPM() const;
-    void start();
-    void stop();
-    bool isRunning() const;
+    void start() override;
+    void stop() override;
+    bool isRunning() const override;
+    bool resetFault() override;
+    String getFault() const override;
+
 };
