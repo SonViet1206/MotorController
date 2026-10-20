@@ -20,6 +20,7 @@ class Encoder{
 
   public:
     explicit Encoder(uint32_t countsPerRevolution);
+    void syncRPM();
     void update(bool A, bool B);
     int32_t getCount() const;
     float getRPM() const;

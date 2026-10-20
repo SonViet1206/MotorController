@@ -26,7 +26,8 @@ void SpeedController::update(unsigned long now)
   {
     firstUpdate = false;
     previousTime = now;
-    encoder.reset();
+    
+    encoder.syncRPM();
     return;
   }
 
@@ -38,7 +39,7 @@ void SpeedController::update(unsigned long now)
   float dt = elapsed / 1000.0f;
   previousTime = now;
   encoder.calculateRPM(dt);
-  currentRPM = currentRPM = encoder.getRPM();
+  currentRPM = encoder.getRPM();
 
   float smoothTarget = ramp.update(targetRPM, dt);
   float output = pid.calculate(smoothTarget, currentRPM, dt);
@@ -81,6 +82,7 @@ void SpeedController::stop()
   ramp.reset(0);
 
   motor.disable();
+  firstUpdate = true;
 }
 bool SpeedController::resetFault()
 {

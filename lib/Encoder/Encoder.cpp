@@ -3,6 +3,11 @@
 Encoder::Encoder(uint32_t countsPerRevolution): countsPerRevolution(countsPerRevolution),count(0),previousCount(0),rpm(0),first(true){
 
 }
+void Encoder::syncRPM()
+{
+    previousCount = count.load(std::memory_order_relaxed);
+    rpm = 0;
+}
 void Encoder::update(bool A, bool B){
   uint8_t currentState = (A << 1) | B;
   uint8_t transition;
